@@ -1,0 +1,23 @@
+<idea-plugin>
+  <id>local.ai-chat-focus</id>
+  <name>AI Chat Focus</name>
+  <version>1.0.0</version>
+  <vendor>Local</vendor>
+
+  <idea-version since-build="262.10968.1" until-build="262.10968.*" />
+
+  <depends>com.intellij.modules.platform</depends>
+  <depends>com.intellij.ml.llm</depends>
+
+  <actions>
+    <action
+        id="Local.AIChat.OpenAndFocusInput"
+        class="local.aichatfocus.OpenAndFocusAiChatAction"
+        text="Open and Focus AI Chat"
+        description="Open the current AI Chat and focus its text box" />
+  </actions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <postStartupActivity implementation="local.aichatfocus.AiChatSelectionSyncStartupActivity" />
+  </extensions>
+</idea-plugin>
