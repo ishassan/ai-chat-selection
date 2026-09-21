@@ -12,6 +12,21 @@ It adds one action that:
 
 It does not create a new chat and it does not send a prompt.
 
+## Why a plugin is needed
+
+The built-in actions and keymaps each miss part of this workflow in IntelliJ IDEA 2026.2:
+
+| Built-in option | What it does | What is missing |
+| --- | --- | --- |
+| `AIAssistant.ToolWindow.ShowOrFocus` | Opens or focuses AI Chat | In a new or empty chat, focus can land on **Open Chat in Editor**, not the input box. |
+| `AIAssistantAddToChatAction` | Adds the selected editor text to the current chat | It leaves focus in the code editor, so a second action is needed before typing. |
+| `AIAssistantAskInChatAction` | Opens a composer and focuses it with the selection | It starts a new chat instead of continuing the current thread. |
+| A macro or keymap chain | Copies text, opens chat, and pastes it | It pastes a snapshot into the prompt. It cannot keep the selection reference current or run a final update before send. |
+
+`@selection` also does not behave as a live pointer in this workflow. IntelliJ stores the selected text and its range when the reference is created. If the editor selection changes later, the old reference can stay attached to the old range while a new selection is added separately.
+
+This plugin combines the missing pieces in one action. It keeps the current thread, focuses the input, replaces the selection context when the editor selection changes, and refreshes `@selection` again before sending.
+
 ## Requirements
 
 - IntelliJ IDEA 2026.2, build `262.10968.*`.
