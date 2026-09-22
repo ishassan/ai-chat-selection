@@ -1,7 +1,7 @@
 <idea-plugin>
   <id>local.ai-chat-focus</id>
   <name>AI Chat Focus</name>
-  <version>1.0.2</version>
+  <version>1.0.3</version>
   <vendor>Local</vendor>
 
   <idea-version since-build="262.10968.1" until-build="262.10968.*" />
@@ -13,8 +13,8 @@
     <action
         id="Local.AIChat.OpenAndFocusInput"
         class="local.aichatfocus.OpenAndFocusAiChatAction"
-        text="Open and Focus AI Chat"
-        description="Open the current AI Chat and focus its text box" />
+        text="Toggle AI Chat"
+        description="Toggle the current AI Chat and focus its text box when opened" />
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">

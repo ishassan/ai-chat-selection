@@ -34,6 +34,11 @@ public final class OpenAndFocusAiChatAction extends DumbAwareAction {
       return;
     }
 
+    if (toolWindow.isVisible()) {
+      toolWindow.hide(null);
+      return;
+    }
+
     toolWindow.activate(
       () -> ApplicationManager.getApplication().invokeLater(
           () -> {

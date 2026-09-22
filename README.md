@@ -4,8 +4,8 @@ A small local IntelliJ IDEA plugin for JetBrains AI Chat.
 
 It adds one action that:
 
-- opens the current AI Chat tool window;
-- focuses the chat input;
+- toggles the current AI Chat tool window;
+- focuses the chat input when it opens;
 - adds an `@selection` reference when you select text in a file editor;
 - refreshes that reference when the file editor selection changes;
 - removes stale selection attachments left by version 1.0.0.
@@ -74,4 +74,4 @@ The action id is `Local.AIChat.OpenAndFocusInput`.
 
 ## Use
 
-Select code in the editor and press `Control+\`. The existing AI Chat thread stays open, the input gets focus, and the selected code appears as one `@selection` reference. Type your prompt after it. If you change the file editor selection later, the plugin refreshes that reference.
+Select code in the editor and press `Control+\`. If AI Chat is open, the shortcut hides it. If it is hidden, the shortcut shows the current thread, focuses the input, and keeps one `@selection` reference for the selected code. Type your prompt after it. If you change the file editor selection later, the plugin refreshes that reference.
