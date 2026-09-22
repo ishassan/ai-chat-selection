@@ -8,7 +8,9 @@ ML_LLM_PLUGIN="${ML_LLM_PLUGIN:-$USER_HOME/Library/Application Support/JetBrains
 JAVAC="${JAVAC:-$IDEA_HOME/jbr/Contents/Home/bin/javac}"
 FULL_LINE_JAR="${FULL_LINE_JAR:-$IDEA_HOME/plugins/fullLine/lib/fullLine.jar}"
 BUILD_DIR="$SCRIPT_DIR/build/classes"
+PACKAGE_DIR="$SCRIPT_DIR/build/package"
 DIST_DIR="$SCRIPT_DIR/dist"
+PLUGIN_ZIP="$DIST_DIR/ai-chat-selection-sync.zip"
 
 if [[ ! -x "$JAVAC" ]]; then
   printf 'javac not found: %s\n' "$JAVAC" >&2
@@ -26,7 +28,9 @@ if [[ ! -d "$ML_LLM_PLUGIN/lib" ]]; then
 fi
 
 rm -rf "$BUILD_DIR"
-mkdir -p "$BUILD_DIR" "$DIST_DIR"
+rm -rf "$PACKAGE_DIR"
+rm -f "$PLUGIN_ZIP"
+mkdir -p "$BUILD_DIR" "$PACKAGE_DIR/ai-chat-selection-sync/lib" "$DIST_DIR"
 
 CLASSPATH="$IDEA_HOME/lib/*:$ML_LLM_PLUGIN/lib/*:$ML_LLM_PLUGIN/lib/modules/*:$FULL_LINE_JAR"
 
@@ -52,5 +56,8 @@ cp "$SCRIPT_DIR/src/main/resources/META-INF/plugin.xml" "$BUILD_DIR/META-INF/plu
 
 rm -f "$DIST_DIR/ai-chat-focus.jar"
 jar cf "$DIST_DIR/ai-chat-focus.jar" -C "$BUILD_DIR" .
+cp "$DIST_DIR/ai-chat-focus.jar" "$PACKAGE_DIR/ai-chat-selection-sync/lib/ai-chat-focus.jar"
+(cd "$PACKAGE_DIR" && zip -qr "$PLUGIN_ZIP" ai-chat-selection-sync)
 
 printf 'Built %s\n' "$DIST_DIR/ai-chat-focus.jar"
+printf 'Packaged %s\n' "$PLUGIN_ZIP"

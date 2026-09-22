@@ -1,8 +1,24 @@
-<idea-plugin>
+<idea-plugin url="https://github.com/ishassan/ai-chat-selection-sync">
   <id>local.ai-chat-focus</id>
-  <name>AI Chat Focus</name>
-  <version>1.0.3</version>
-  <vendor>Local</vendor>
+  <name>AI Chat Selection</name>
+  <version>1.0.7</version>
+  <vendor url="https://github.com/ishassan">ishassan</vendor>
+
+  <description><![CDATA[
+    <p>Syncs selected IntelliJ editor text into JetBrains AI Chat.</p>
+    <ul>
+      <li>Adds and refreshes the current <code>@selection</code> reference.</li>
+      <li>Opens the current AI Chat when needed and focuses its input.</li>
+      <li>Ignores selections made inside the AI Chat input.</li>
+    </ul>
+  ]]></description>
+
+  <change-notes><![CDATA[
+    <ul>
+      <li>Added selection-first Marketplace metadata.</li>
+      <li>Changed the AI Chat action to keep the view open and focus its input.</li>
+    </ul>
+  ]]></change-notes>
 
   <idea-version since-build="262.10968.1" until-build="262.10968.*" />
 
@@ -13,8 +29,8 @@
     <action
         id="Local.AIChat.OpenAndFocusInput"
         class="local.aichatfocus.OpenAndFocusAiChatAction"
-        text="Toggle AI Chat"
-        description="Toggle the current AI Chat and focus its text box when opened" />
+        text="Focus AI Chat Input"
+        description="Open the current AI Chat when needed and focus its text box" />
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
