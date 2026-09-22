@@ -1,18 +1,19 @@
-# AI Chat Focus
+# AI Chat Selection Sync
 
-A small local IntelliJ IDEA plugin for JetBrains AI Chat.
+A small local IntelliJ IDEA plugin that keeps selected file-editor text in JetBrains AI Chat and manages the chat view.
 
-It adds one action that:
+It:
 
-- toggles the current AI Chat tool window;
-- focuses the chat input when it opens;
 - adds an `@selection` reference when you select text in a file editor;
 - refreshes that reference when the file editor selection changes;
+- toggles the current AI Chat tool window with `Control+\`;
+- focuses the chat input when it opens;
+- ignores selections made inside the AI Chat input;
 - removes stale selection attachments left by version 1.0.0.
 
 It does not create a new chat and it does not send a prompt.
 
-JetBrains AI Assistant already ignores selections made inside the AI Chat input. The plugin leaves that filter in place and only refreshes an `@selection` reference after a selection change in the file editor.
+The plugin only treats selections in the file editor as source selections. It leaves JetBrains AI Assistant's input filter in place.
 
 ## Why a plugin is needed
 
@@ -67,7 +68,7 @@ cp dist/ai-chat-focus.jar "$HOME/Library/Application Support/JetBrains/IntelliJI
 In IntelliJ:
 
 1. Open Settings, Keymap.
-2. Search for **Open and Focus AI Chat**.
+2. Search for **Toggle AI Chat**.
 3. Assign `Control+\`.
 
 The action id is `Local.AIChat.OpenAndFocusInput`.
