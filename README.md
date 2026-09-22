@@ -6,11 +6,13 @@ It adds one action that:
 
 - opens the current AI Chat tool window;
 - focuses the chat input;
-- keeps the current editor selection as chat context;
-- refreshes a typed `@selection` reference when the editor selection changes;
-- refreshes the selection again just before the message is sent.
+- adds an `@selection` reference when you select text in a file editor;
+- refreshes that reference when the file editor selection changes;
+- removes stale selection attachments left by version 1.0.0.
 
 It does not create a new chat and it does not send a prompt.
+
+JetBrains AI Assistant already ignores selections made inside the AI Chat input. The plugin leaves that filter in place and only refreshes an `@selection` reference after a selection change in the file editor.
 
 ## Why a plugin is needed
 
@@ -21,11 +23,9 @@ The built-in actions and keymaps each miss part of this workflow in IntelliJ IDE
 | `AIAssistant.ToolWindow.ShowOrFocus` | Opens or focuses AI Chat | In a new or empty chat, focus can land on **Open Chat in Editor**, not the input box. |
 | `AIAssistantAddToChatAction` | Adds the selected editor text to the current chat | It leaves focus in the code editor, so a second action is needed before typing. |
 | `AIAssistantAskInChatAction` | Opens a composer and focuses it with the selection | It starts a new chat instead of continuing the current thread. |
-| A macro or keymap chain | Copies text, opens chat, and pastes it | It pastes a snapshot into the prompt. It cannot keep the selection reference current or run a final update before send. |
+| A macro or keymap chain | Copies text, opens chat, and pastes it | It pastes a snapshot into the prompt and does not solve the focus problem. |
 
-`@selection` also does not behave as a live pointer in this workflow. IntelliJ stores the selected text and its range when the reference is created. If the editor selection changes later, the old reference can stay attached to the old range while a new selection is added separately.
-
-This plugin combines the missing pieces in one action. It keeps the current thread, focuses the input, replaces the selection context when the editor selection changes, and refreshes `@selection` again before sending.
+`@selection` is represented by a selection attachment after it is inserted. The visible attachment can keep the original range when the editor selection changes. This plugin adds the token when the editor has a selection, removes the old manual selection attachment, and recreates the same input document, so the token points to the current editor range. It coalesces quick selection events while dragging, so one change produces one chip.
 
 ## Requirements
 
@@ -74,4 +74,4 @@ The action id is `Local.AIChat.OpenAndFocusInput`.
 
 ## Use
 
-Select code in the editor and press `Control+\`. The existing AI Chat thread stays open and the input gets focus. If the input contains `@selection`, the plugin re-creates the input document so that reference uses the current editor selection.
+Select code in the editor and press `Control+\`. The existing AI Chat thread stays open, the input gets focus, and the selected code appears as one `@selection` reference. Type your prompt after it. If you change the file editor selection later, the plugin refreshes that reference.

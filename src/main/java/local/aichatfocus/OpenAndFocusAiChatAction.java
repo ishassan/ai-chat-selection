@@ -4,9 +4,9 @@ import com.intellij.llmInstaller.api.AiToolWindowService;
 import com.intellij.ml.llm.core.chat.ui.chat.AIAssistantChatPanel;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
@@ -34,17 +34,14 @@ public final class OpenAndFocusAiChatAction extends DumbAwareAction {
       return;
     }
 
-    Editor editor = event.getData(CommonDataKeys.EDITOR);
-
     toolWindow.activate(
       () -> ApplicationManager.getApplication().invokeLater(
           () -> {
             AIAssistantChatPanel panel = findChatPanel(toolWindow.getComponent());
             if (panel != null) {
-              AiChatSelectionSync.attachSubmitListener(panel, project);
-              if (editor != null) {
-                AiChatSelectionSync.sync(project, editor, panel);
-              }
+              AiChatSelectionSync.clearManualSelectionAttachments(project);
+              Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
+              AiChatSelectionSync.refresh(project, editor, panel);
               panel.focusInput();
             }
           }),

@@ -1,139 +1,110 @@
 package local.aichatfocus;
 
-import com.intellij.ml.llm.core.chat.context.selection.AIAssistantSelectionService;
-import com.intellij.ml.llm.core.chat.context.selection.SelectionContextAttachment;
+import com.intellij.llmInstaller.api.AiToolWindowService;
+import com.intellij.ml.llm.context.ContextEntity;
 import com.intellij.ml.llm.core.chat.session.ChatSession;
+import com.intellij.ml.llm.core.chat.session.ContextStorage;
 import com.intellij.ml.llm.core.chat.session.FocusedChatSessionHost;
+import com.intellij.ml.llm.core.chat.session.HasContextStorage;
 import com.intellij.ml.llm.core.chat.ui.chat.AIAssistantChatPanel;
-import com.intellij.ml.llm.core.chat.ui.chat.context.AIChatContextViewModel;
+import com.intellij.ml.llm.core.chat.ui.chat.context.UserManualContextStorageScope;
 import com.intellij.ml.llm.core.chat.ui.chat.context.attachments.ContextAttachment;
 import com.intellij.ml.llm.core.chat.ui.chat.context.attachments.ContextAttachmentKind;
-import com.intellij.ml.llm.core.chat.ui.chat.input.AIAssistantInput;
-import com.intellij.ml.llm.core.chat.ui.chat.input.AIAssistantInputListener;
-import com.intellij.ml.llm.privacy.PSString;
-import com.intellij.ml.llm.privacy.extensions.ExtensionsKtKt;
-import com.intellij.llmInstaller.api.AiToolWindowService;
+import com.intellij.ml.llm.core.chat.ui.chat.input.AIAssistantInputEditorTextField;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiFile;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.Component;
 import java.awt.Container;
-import javax.swing.Icon;
-import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.WeakHashMap;
 
 final class AiChatSelectionSync {
-  private static final Set<AIAssistantInput> LISTENING_INPUTS =
-      Collections.newSetFromMap(new WeakHashMap<>());
+  private static final String SELECTION_REFERENCE = "@selection";
 
   private AiChatSelectionSync() {
   }
 
-  static void sync(Project project, Editor editor) {
-    sync(project, editor, findChatPanel(project));
+  static void refresh(Project project, Editor editor) {
+    refresh(project, editor, findChatPanel(project));
   }
 
-  static void sync(Project project, Editor editor, AIAssistantChatPanel panel) {
-    if (project.isDisposed() || editor.isDisposed()) {
+  static void refresh(Project project, Editor editor, AIAssistantChatPanel panel) {
+    if (!isSourceEditor(project, editor) || !editor.getSelectionModel().hasSelection() || panel == null) {
       return;
     }
 
-    ChatSession session = FocusedChatSessionHost.Companion.getInstance(project).getFocusedChatSession();
+    String inputText = getInputText(panel);
+    if (inputText == null) {
+      return;
+    }
+
+    ChatSession session = focusedSession(project);
     if (session == null) {
       return;
     }
 
-    AIChatContextViewModel context = session.getContextViewModel().getModelImpl();
-    if (context == null) {
+    clearManualSelectionAttachments(session);
+    panel.setText(ensureSelectionReference(inputText));
+  }
+
+  static void clearManualSelectionAttachments(Project project) {
+    ChatSession session = focusedSession(project);
+    if (session != null) {
+      clearManualSelectionAttachments(session);
+    }
+  }
+
+  static boolean isSourceEditor(Project project, Editor editor) {
+    if (project == null || editor == null || project.isDisposed() || editor.isDisposed()) {
+      return false;
+    }
+    if (editor.getProject() != project) {
+      return false;
+    }
+    if (AIAssistantInputEditorTextField.Companion.isAIAssistantInputEditor(editor)) {
+      return false;
+    }
+    return FileEditorManager.getInstance(project).getSelectedTextEditor() == editor;
+  }
+
+  private static ChatSession focusedSession(Project project) {
+    return FocusedChatSessionHost.Companion.getInstance(project).getFocusedChatSession();
+  }
+
+  private static void clearManualSelectionAttachments(ChatSession session) {
+    if (!(session.getRetrievalSession() instanceof HasContextStorage storageOwner)) {
       return;
     }
 
-    List<ContextAttachment> existingItems = new ArrayList<>(context.getContextItems());
-    for (ContextAttachment item : existingItems) {
-      if (item.getKind() == ContextAttachmentKind.SELECTION) {
-        context.removeContextItem(item);
+    ContextStorage storage = storageOwner.getContextStorage();
+    List<ContextEntity> selectionItems = new ArrayList<>();
+    for (ContextEntity item : storage.getItems()) {
+      if (item instanceof ContextAttachment attachment
+          && attachment.getKind() == ContextAttachmentKind.SELECTION) {
+        selectionItems.add(item);
       }
     }
-
-    String inputText = getInputText(panel);
-    if (inputText != null && inputText.contains("@selection")) {
-      panel.setText(inputText);
-      return;
+    if (!selectionItems.isEmpty()) {
+      storage.remove(UserManualContextStorageScope.INSTANCE, selectionItems);
     }
-
-    PSString selectedText = ExtensionsKtKt.getPrivacySafe(editor.getSelectionModel()).getSelectedText();
-    if (selectedText == null || selectedText.length() == 0) {
-      return;
-    }
-
-    PsiFile psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
-    String fileName = psiFile != null ? psiFile.getName() : "";
-    Icon icon = psiFile != null ? psiFile.getIcon(0) : null;
-    int selectionStart = editor.getSelectionModel().getSelectionStart();
-    int selectionEnd = editor.getSelectionModel().getSelectionEnd();
-    TextRange documentRange = new TextRange(selectionStart, selectionEnd);
-    var presentationPositions =
-        AIAssistantSelectionService.Companion.calculatePositionsForAttachmentPresentation(editor, documentRange);
-
-    SelectionContextAttachment attachment = new SelectionContextAttachment(
-        project,
-        editor,
-        "Selection",
-        fileName,
-        String.valueOf(editor.hashCode()),
-        icon,
-        selectedText,
-        presentationPositions.getFirst(),
-        presentationPositions.getSecond(),
-        session.getUid(),
-        documentRange,
-        ContextAttachmentKind.SELECTION
-    );
-    context.addContextItem(attachment);
   }
 
   private static String getInputText(AIAssistantChatPanel panel) {
-    if (panel == null) {
-      return null;
-    }
     return panel.getInput().getText().unwrap().toString();
   }
 
-  static void attachSubmitListener(AIAssistantChatPanel panel, Project project) {
-    AIAssistantInput input = panel.getInput();
-    if (!LISTENING_INPUTS.add(input)) {
-      return;
+  private static String ensureSelectionReference(String inputText) {
+    if (inputText.contains(SELECTION_REFERENCE)) {
+      return inputText;
     }
-
-    input.addListener(new AIAssistantInputListener() {
-      @Override
-      public void onSubmit(@NotNull com.intellij.ml.llm.core.chat.ui.chat.input.AIAssistantInputTrigger trigger) {
-        syncCurrentEditor(project, panel);
-      }
-
-      @Override
-      public void onSubmitToNewChat(
-          @NotNull com.intellij.ml.llm.core.chat.ui.chat.input.AIAssistantInputTrigger trigger) {
-        syncCurrentEditor(project, panel);
-      }
-    });
-  }
-
-  private static void syncCurrentEditor(Project project, AIAssistantChatPanel panel) {
-    Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
-    if (editor != null) {
-      sync(project, editor, panel);
+    if (inputText.isBlank()) {
+      return SELECTION_REFERENCE + " ";
     }
+    return inputText + " " + SELECTION_REFERENCE;
   }
 
   private static AIAssistantChatPanel findChatPanel(Project project) {
