@@ -1,7 +1,7 @@
 <idea-plugin url="https://github.com/ishassan/ai-chat-selection-sync">
   <id>local.ai-chat-focus</id>
   <name>AI Chat Selection</name>
-  <version>1.0.7</version>
+  <version>1.0.11</version>
   <vendor url="https://github.com/ishassan">ishassan</vendor>
 
   <description><![CDATA[
@@ -10,6 +10,7 @@
       <li>Adds and refreshes the current <code>@selection</code> reference.</li>
       <li>Opens the current AI Chat when needed and focuses its input.</li>
       <li>Ignores selections made inside the AI Chat input.</li>
+      <li>On macOS, runs assigned single-key Option shortcuts in IntelliJ text fields without adding shortcut text.</li>
     </ul>
   ]]></description>
 
@@ -17,6 +18,7 @@
     <ul>
       <li>Added selection-first Marketplace metadata.</li>
       <li>Changed the AI Chat action to keep the view open and focus its input.</li>
+      <li>Added macOS Option shortcut handling with a Settings switch.</li>
     </ul>
   ]]></change-notes>
 
@@ -34,6 +36,14 @@
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceImplementation="local.aichatfocus.OptionShortcutSettings" os="mac" preload="true" />
+    <applicationService serviceImplementation="local.aichatfocus.OptionShortcutInterceptor" os="mac" preload="true" />
+    <applicationConfigurable
+        id="local.ai-chat-focus.option-shortcuts"
+        parentId="tools"
+        displayName="AI Chat Selection"
+        instance="local.aichatfocus.OptionShortcutConfigurable"
+        os="mac" />
     <postStartupActivity implementation="local.aichatfocus.AiChatSelectionSyncStartupActivity" />
   </extensions>
 </idea-plugin>

@@ -9,6 +9,7 @@ An IntelliJ IDEA plugin that keeps the current file-editor selection available i
 - Opens the AI Chat tool window if needed, then focuses its input.
 - Keeps the current chat open. It does not start a new chat or send a prompt.
 - Ignores selections made inside the AI Chat input.
+- On macOS, assigned single-key Option shortcuts run in IntelliJ text fields without adding shortcut text. Unassigned Option combinations continue to type normally. Terminal and browser inputs are outside this feature.
 
 ## Requirements
 
@@ -54,6 +55,10 @@ FULL_LINE_JAR="/path/to/fullLine.jar" \
 3. Assign a shortcut of your choice.
 
 The action ID is `Local.AIChat.OpenAndFocusInput`.
+
+## Option shortcuts on macOS
+
+Assigned single-key Option shortcuts run in IntelliJ editor, AI Chat, search, and Settings text fields without adding shortcut text. This is enabled by default on macOS. To turn it off, open **Settings | Tools | AI Chat Selection** and clear **Handle assigned Option shortcuts in IntelliJ text fields**. The setting does not apply to embedded Terminal or browser inputs.
 
 ## Use
 

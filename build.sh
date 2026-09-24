@@ -6,8 +6,10 @@ IDEA_HOME="${IDEA_HOME:-/Applications/IntelliJ IDEA.app/Contents}"
 USER_HOME="${HOME:?HOME is not set}"
 ML_LLM_PLUGIN="${ML_LLM_PLUGIN:-$USER_HOME/Library/Application Support/JetBrains/IntelliJIdea2026.2/plugins/ml-llm}"
 JAVAC="${JAVAC:-$IDEA_HOME/jbr/Contents/Home/bin/javac}"
+JAVA="${JAVA:-$IDEA_HOME/jbr/Contents/Home/bin/java}"
 FULL_LINE_JAR="${FULL_LINE_JAR:-$IDEA_HOME/plugins/fullLine/lib/fullLine.jar}"
 BUILD_DIR="$SCRIPT_DIR/build/classes"
+TEST_BUILD_DIR="$SCRIPT_DIR/build/test-classes"
 PACKAGE_DIR="$SCRIPT_DIR/build/package"
 DIST_DIR="$SCRIPT_DIR/dist"
 PLUGIN_ZIP="$DIST_DIR/ai-chat-selection-sync.zip"
@@ -28,9 +30,14 @@ if [[ ! -d "$ML_LLM_PLUGIN/lib" ]]; then
 fi
 
 rm -rf "$BUILD_DIR"
+rm -rf "$TEST_BUILD_DIR"
 rm -rf "$PACKAGE_DIR"
 rm -f "$PLUGIN_ZIP"
 mkdir -p "$BUILD_DIR" "$PACKAGE_DIR/ai-chat-selection-sync/lib" "$DIST_DIR"
+
+NATIVE_SOURCE="$SCRIPT_DIR/src/main/native/macos/option_shortcut_interceptor.m"
+NATIVE_OUTPUT="$BUILD_DIR/native/macos/libai_chat_option_shortcuts.dylib"
+mkdir -p "$(dirname "$NATIVE_OUTPUT")"
 
 CLASSPATH="$IDEA_HOME/lib/*:$ML_LLM_PLUGIN/lib/*:$ML_LLM_PLUGIN/lib/modules/*:$FULL_LINE_JAR"
 
@@ -43,6 +50,11 @@ if [[ "${#JAVA_SOURCES[@]}" -eq 0 ]]; then
   exit 1
 fi
 
+TEST_SOURCES=()
+while IFS= read -r source_file; do
+  TEST_SOURCES[${#TEST_SOURCES[@]}]="$source_file"
+done < <(find "$SCRIPT_DIR/src/test/java" -type f -name '*.java' -print | sort)
+
 "$JAVAC" \
   -encoding UTF-8 \
   -source 17 \
@@ -50,6 +62,33 @@ fi
   -cp "$CLASSPATH" \
   -d "$BUILD_DIR" \
   "${JAVA_SOURCES[@]}"
+
+if [[ "${#TEST_SOURCES[@]}" -gt 0 ]]; then
+  mkdir -p "$TEST_BUILD_DIR"
+  "$JAVAC" \
+    -encoding UTF-8 \
+    -source 17 \
+    -target 17 \
+    -cp "$BUILD_DIR" \
+    -d "$TEST_BUILD_DIR" \
+    "${TEST_SOURCES[@]}"
+  "$JAVA" -cp "$TEST_BUILD_DIR:$BUILD_DIR" local.aichatfocus.MacKeyCodeMapTest
+fi
+
+xcrun --sdk macosx clang \
+  -fobjc-arc \
+  -fblocks \
+  -dynamiclib \
+  -arch arm64 \
+  -arch x86_64 \
+  -mmacosx-version-min=10.15 \
+  -undefined dynamic_lookup \
+  -I"$IDEA_HOME/jbr/Contents/Home/include" \
+  -I"$IDEA_HOME/jbr/Contents/Home/include/darwin" \
+  "$NATIVE_SOURCE" \
+  -framework AppKit \
+  -framework Foundation \
+  -o "$NATIVE_OUTPUT"
 
 mkdir -p "$BUILD_DIR/META-INF"
 cp "$SCRIPT_DIR/src/main/resources/META-INF/plugin.xml" "$BUILD_DIR/META-INF/plugin.xml"
