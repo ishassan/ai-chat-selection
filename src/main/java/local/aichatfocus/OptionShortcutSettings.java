@@ -5,7 +5,7 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import org.jetbrains.annotations.NotNull;
 
-@State(name = "AiChatFocusSettings", storages = @Storage("ai-chat-focus.xml"))
+@State(name = "AiChatSelectionSettings", storages = @Storage("ai-chat-selection.xml"))
 public final class OptionShortcutSettings implements PersistentStateComponent<OptionShortcutSettings.State> {
   private volatile State state = new State();
 

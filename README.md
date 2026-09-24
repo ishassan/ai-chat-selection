@@ -1,4 +1,4 @@
-# AI Chat Selection Sync
+# ai-chat-selection
 
 An IntelliJ IDEA plugin that keeps the current file-editor selection available in JetBrains AI Assistant chat and puts focus in the chat input.
 
@@ -28,8 +28,8 @@ The build script uses an installed IntelliJ IDEA distribution and the JetBrains 
 
 The build creates:
 
-- `dist/ai-chat-selection-sync.jar`, for local installation.
-- `dist/ai-chat-selection-sync.zip`, a plugin distribution archive.
+- `dist/ai-chat-selection.jar`, for local installation.
+- `dist/ai-chat-selection.zip`, a plugin distribution archive.
 
 To create a signed archive for publishing, provide the Marketplace ZIP Signer CLI and your certificate and private key files:
 
@@ -41,7 +41,7 @@ SIGNING_KEY_PASSWORD="your-key-password" \
 ./build.sh
 ```
 
-The script signs and verifies `dist/ai-chat-selection-sync-<version>-signed.zip`. Keep the private key and password outside this repository. Without signing settings, the script creates only the unsigned archive.
+The script signs and verifies `dist/ai-chat-selection-<version>-signed.zip`. Keep the private key and password outside this repository. Without signing settings, the script creates only the unsigned archive.
 For repeated local builds, put the same variable assignments in `.signing.env`. The build script reads it automatically, and Git ignores the file.
 
 The build script defaults to a macOS IntelliJ IDEA layout. To build from a different installation, set the paths it uses:
@@ -58,8 +58,10 @@ FULL_LINE_JAR="/path/to/fullLine.jar" \
 
 1. Build the plugin.
 2. In IntelliJ IDEA, open **Settings | Plugins**.
-3. Select **Install Plugin from Disk** and choose `dist/ai-chat-selection-sync.jar`.
+3. Select **Install Plugin from Disk** and choose `dist/ai-chat-selection.jar`.
 4. Restart the IDE when prompted.
+
+If you installed the earlier plugin with ID `local.ai-chat-focus`, uninstall it before installing this release. The two plugins cannot run together.
 
 ## Configure a shortcut
 
@@ -71,7 +73,7 @@ The action ID is `Local.AIChat.OpenAndFocusInput`.
 
 ## Option shortcuts on macOS
 
-Assigned single-key Option shortcuts run in IntelliJ editor, AI Chat, search, and Settings text fields without adding shortcut text. This is enabled by default on macOS. To turn it off, open **Settings | Tools | AI Chat Selection** and clear **Handle assigned Option shortcuts in IntelliJ text fields**. The setting does not apply to embedded Terminal or browser inputs.
+Assigned single-key Option shortcuts run in IntelliJ editor, AI Chat, search, and Settings text fields without adding shortcut text. This is enabled by default on macOS. To turn it off, open **Settings | Tools | ai-chat-selection** and clear **Handle assigned Option shortcuts in IntelliJ text fields**. The setting does not apply to embedded Terminal or browser inputs.
 
 ## Use
 

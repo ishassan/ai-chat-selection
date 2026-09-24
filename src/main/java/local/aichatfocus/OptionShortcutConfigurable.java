@@ -15,7 +15,7 @@ public final class OptionShortcutConfigurable implements Configurable {
 
   @Override
   public @Nls String getDisplayName() {
-    return "AI Chat Selection";
+    return "ai-chat-selection";
   }
 
   @Override

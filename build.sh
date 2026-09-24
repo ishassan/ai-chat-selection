@@ -12,8 +12,9 @@ BUILD_DIR="$SCRIPT_DIR/build/classes"
 TEST_BUILD_DIR="$SCRIPT_DIR/build/test-classes"
 PACKAGE_DIR="$SCRIPT_DIR/build/package"
 DIST_DIR="$SCRIPT_DIR/dist"
-PLUGIN_ZIP="$DIST_DIR/ai-chat-selection-sync.zip"
-PLUGIN_JAR="$DIST_DIR/ai-chat-selection-sync.jar"
+PLUGIN_NAME="ai-chat-selection"
+PLUGIN_ZIP="$DIST_DIR/$PLUGIN_NAME.zip"
+PLUGIN_JAR="$DIST_DIR/$PLUGIN_NAME.jar"
 LOCAL_SIGNING_CONFIG="$SCRIPT_DIR/.signing.env"
 if [[ -f "$LOCAL_SIGNING_CONFIG" ]]; then
   source "$LOCAL_SIGNING_CONFIG"
@@ -61,7 +62,7 @@ rm -rf "$BUILD_DIR"
 rm -rf "$TEST_BUILD_DIR"
 rm -rf "$PACKAGE_DIR"
 rm -f "$PLUGIN_ZIP"
-mkdir -p "$BUILD_DIR" "$PACKAGE_DIR/ai-chat-selection-sync/lib" "$DIST_DIR"
+mkdir -p "$BUILD_DIR" "$PACKAGE_DIR/$PLUGIN_NAME/lib" "$DIST_DIR"
 
 NATIVE_SOURCE="$SCRIPT_DIR/src/main/native/macos/option_shortcut_interceptor.m"
 NATIVE_OUTPUT="$BUILD_DIR/native/macos/libai_chat_option_shortcuts.dylib"
@@ -121,16 +122,17 @@ xcrun --sdk macosx clang \
 mkdir -p "$BUILD_DIR/META-INF"
 cp "$SCRIPT_DIR/src/main/resources/META-INF/plugin.xml" "$BUILD_DIR/META-INF/plugin.xml"
 
-rm -f "$PLUGIN_JAR" "$DIST_DIR/ai-chat-focus.jar"
+rm -f "$PLUGIN_JAR" "$DIST_DIR/ai-chat-focus.jar" \
+  "$DIST_DIR/ai-chat-selection-sync.jar" "$DIST_DIR/ai-chat-selection-sync.zip"
 jar cf "$PLUGIN_JAR" -C "$BUILD_DIR" .
-cp "$PLUGIN_JAR" "$PACKAGE_DIR/ai-chat-selection-sync/lib/ai-chat-selection-sync.jar"
-(cd "$PACKAGE_DIR" && zip -qr "$PLUGIN_ZIP" ai-chat-selection-sync)
+cp "$PLUGIN_JAR" "$PACKAGE_DIR/$PLUGIN_NAME/lib/$PLUGIN_NAME.jar"
+(cd "$PACKAGE_DIR" && zip -qr "$PLUGIN_ZIP" "$PLUGIN_NAME")
 
 printf 'Built %s\n' "$PLUGIN_JAR"
 printf 'Packaged %s\n' "$PLUGIN_ZIP"
 
 if [[ "$SIGNING_REQUESTED" == true ]]; then
-  SIGNED_ZIP="$DIST_DIR/ai-chat-selection-sync-$PLUGIN_VERSION-signed.zip"
+  SIGNED_ZIP="$DIST_DIR/$PLUGIN_NAME-$PLUGIN_VERSION-signed.zip"
   rm -f "$SIGNED_ZIP"
   "$JAVA" -jar "$SIGNER_CLI_JAR" sign \
     -in "$PLUGIN_ZIP" \
