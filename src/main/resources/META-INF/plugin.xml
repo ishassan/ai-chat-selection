@@ -36,8 +36,8 @@
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <applicationService serviceImplementation="local.aichatfocus.OptionShortcutSettings" os="mac" preload="true" />
-    <applicationService serviceImplementation="local.aichatfocus.OptionShortcutInterceptor" os="mac" preload="true" />
+    <applicationService serviceImplementation="local.aichatfocus.OptionShortcutSettings" os="mac" />
+    <applicationService serviceImplementation="local.aichatfocus.OptionShortcutInterceptor" os="mac" />
     <applicationConfigurable
         id="local.ai-chat-focus.option-shortcuts"
         parentId="tools"
