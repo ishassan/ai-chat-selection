@@ -55,16 +55,6 @@ public final class OptionShortcutInterceptor implements Disposable {
     }
 
     @Override
-    public void shortcutChanged(Keymap keymap, String actionId) {
-      refreshAssignedShortcuts();
-    }
-
-    @Override
-    public void shortcutChanged(Keymap keymap, String actionId, boolean added) {
-      refreshAssignedShortcuts();
-    }
-
-    @Override
     public void shortcutsChanged(Keymap keymap, Collection<String> actionIds, boolean added) {
       refreshAssignedShortcuts();
     }

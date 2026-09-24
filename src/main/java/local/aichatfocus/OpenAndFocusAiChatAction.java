@@ -1,6 +1,5 @@
 package local.aichatfocus;
 
-import com.intellij.llmInstaller.api.AiToolWindowService;
 import com.intellij.ml.llm.core.chat.ui.chat.AIAssistantChatPanel;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -23,13 +22,7 @@ public final class OpenAndFocusAiChatAction extends DumbAwareAction {
       return;
     }
 
-    AiToolWindowService service =
-        ApplicationManager.getApplication().getService(AiToolWindowService.class);
-    if (service == null) {
-      return;
-    }
-
-    ToolWindow toolWindow = service.getToolWindow(project);
+    ToolWindow toolWindow = AiAssistantToolWindowAccess.getToolWindow(project);
     if (toolWindow == null) {
       return;
     }

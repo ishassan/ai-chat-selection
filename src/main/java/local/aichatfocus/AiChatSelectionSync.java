@@ -1,6 +1,5 @@
 package local.aichatfocus;
 
-import com.intellij.llmInstaller.api.AiToolWindowService;
 import com.intellij.ml.llm.context.ContextEntity;
 import com.intellij.ml.llm.core.chat.session.ChatSession;
 import com.intellij.ml.llm.core.chat.session.ContextStorage;
@@ -11,7 +10,6 @@ import com.intellij.ml.llm.core.chat.ui.chat.context.UserManualContextStorageSco
 import com.intellij.ml.llm.core.chat.ui.chat.context.attachments.ContextAttachment;
 import com.intellij.ml.llm.core.chat.ui.chat.context.attachments.ContextAttachmentKind;
 import com.intellij.ml.llm.core.chat.ui.chat.input.AIAssistantInputEditorTextField;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
@@ -94,7 +92,7 @@ final class AiChatSelectionSync {
   }
 
   private static String getInputText(AIAssistantChatPanel panel) {
-    return panel.getInput().getText().unwrap().toString();
+    return panel.getInput().getEditorTextField().getDocument().getText();
   }
 
   private static String ensureSelectionReference(String inputText) {
@@ -108,12 +106,7 @@ final class AiChatSelectionSync {
   }
 
   private static AIAssistantChatPanel findChatPanel(Project project) {
-    AiToolWindowService service =
-        ApplicationManager.getApplication().getService(AiToolWindowService.class);
-    if (service == null) {
-      return null;
-    }
-    ToolWindow toolWindow = service.getToolWindow(project);
+    ToolWindow toolWindow = AiAssistantToolWindowAccess.getToolWindow(project);
     return toolWindow == null ? null : findChatPanel(toolWindow.getComponent());
   }
 
