@@ -13,6 +13,34 @@ TEST_BUILD_DIR="$SCRIPT_DIR/build/test-classes"
 PACKAGE_DIR="$SCRIPT_DIR/build/package"
 DIST_DIR="$SCRIPT_DIR/dist"
 PLUGIN_ZIP="$DIST_DIR/ai-chat-selection-sync.zip"
+PLUGIN_JAR="$DIST_DIR/ai-chat-selection-sync.jar"
+LOCAL_SIGNING_CONFIG="$SCRIPT_DIR/.signing.env"
+if [[ -f "$LOCAL_SIGNING_CONFIG" ]]; then
+  source "$LOCAL_SIGNING_CONFIG"
+fi
+PLUGIN_VERSION="$(sed -n 's/.*<version>\([^<]*\)<\/version>.*/\1/p' "$SCRIPT_DIR/src/main/resources/META-INF/plugin.xml" | head -n 1)"
+
+if [[ -z "$PLUGIN_VERSION" ]]; then
+  printf 'Plugin version not found in plugin.xml.\n' >&2
+  exit 1
+fi
+
+SIGNING_REQUESTED=false
+if [[ -n "${SIGNER_CLI_JAR:-}${SIGNING_CERT_FILE:-}${SIGNING_KEY_FILE:-}${SIGNING_KEY_PASSWORD:-}" ]]; then
+  SIGNING_REQUESTED=true
+  for required_var in SIGNER_CLI_JAR SIGNING_CERT_FILE SIGNING_KEY_FILE; do
+    if [[ -z "${!required_var:-}" ]]; then
+      printf '%s is required for a signed build.\n' "$required_var" >&2
+      exit 1
+    fi
+  done
+  for required_file in "$SIGNER_CLI_JAR" "$SIGNING_CERT_FILE" "$SIGNING_KEY_FILE"; do
+    if [[ ! -f "$required_file" ]]; then
+      printf 'Signing file not found: %s\n' "$required_file" >&2
+      exit 1
+    fi
+  done
+fi
 
 if [[ ! -x "$JAVAC" ]]; then
   printf 'javac not found: %s\n' "$JAVAC" >&2
@@ -93,10 +121,27 @@ xcrun --sdk macosx clang \
 mkdir -p "$BUILD_DIR/META-INF"
 cp "$SCRIPT_DIR/src/main/resources/META-INF/plugin.xml" "$BUILD_DIR/META-INF/plugin.xml"
 
-rm -f "$DIST_DIR/ai-chat-focus.jar"
-jar cf "$DIST_DIR/ai-chat-focus.jar" -C "$BUILD_DIR" .
-cp "$DIST_DIR/ai-chat-focus.jar" "$PACKAGE_DIR/ai-chat-selection-sync/lib/ai-chat-focus.jar"
+rm -f "$PLUGIN_JAR" "$DIST_DIR/ai-chat-focus.jar"
+jar cf "$PLUGIN_JAR" -C "$BUILD_DIR" .
+cp "$PLUGIN_JAR" "$PACKAGE_DIR/ai-chat-selection-sync/lib/ai-chat-selection-sync.jar"
 (cd "$PACKAGE_DIR" && zip -qr "$PLUGIN_ZIP" ai-chat-selection-sync)
 
-printf 'Built %s\n' "$DIST_DIR/ai-chat-focus.jar"
+printf 'Built %s\n' "$PLUGIN_JAR"
 printf 'Packaged %s\n' "$PLUGIN_ZIP"
+
+if [[ "$SIGNING_REQUESTED" == true ]]; then
+  SIGNED_ZIP="$DIST_DIR/ai-chat-selection-sync-$PLUGIN_VERSION-signed.zip"
+  rm -f "$SIGNED_ZIP"
+  "$JAVA" -jar "$SIGNER_CLI_JAR" sign \
+    -in "$PLUGIN_ZIP" \
+    -out "$SIGNED_ZIP" \
+    -cert-file "$SIGNING_CERT_FILE" \
+    -key-file "$SIGNING_KEY_FILE" \
+    -key-pass "${SIGNING_KEY_PASSWORD:-}"
+  "$JAVA" -jar "$SIGNER_CLI_JAR" verify \
+    -in "$SIGNED_ZIP" \
+    -cert "$SIGNING_CERT_FILE"
+  printf 'Signed and verified %s\n' "$SIGNED_ZIP"
+else
+  printf 'Signing skipped. Set SIGNER_CLI_JAR, SIGNING_CERT_FILE, and SIGNING_KEY_FILE to create a signed archive.\n'
+fi

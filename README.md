@@ -28,8 +28,21 @@ The build script uses an installed IntelliJ IDEA distribution and the JetBrains 
 
 The build creates:
 
-- `dist/ai-chat-focus.jar`, for local installation.
+- `dist/ai-chat-selection-sync.jar`, for local installation.
 - `dist/ai-chat-selection-sync.zip`, a plugin distribution archive.
+
+To create a signed archive for publishing, provide the Marketplace ZIP Signer CLI and your certificate and private key files:
+
+```bash
+SIGNER_CLI_JAR="/path/to/marketplace-zip-signer-cli.jar" \
+SIGNING_CERT_FILE="/path/to/chain.crt" \
+SIGNING_KEY_FILE="/path/to/private.pem" \
+SIGNING_KEY_PASSWORD="your-key-password" \
+./build.sh
+```
+
+The script signs and verifies `dist/ai-chat-selection-sync-<version>-signed.zip`. Keep the private key and password outside this repository. Without signing settings, the script creates only the unsigned archive.
+For repeated local builds, put the same variable assignments in `.signing.env`. The build script reads it automatically, and Git ignores the file.
 
 The build script defaults to a macOS IntelliJ IDEA layout. To build from a different installation, set the paths it uses:
 
@@ -45,7 +58,7 @@ FULL_LINE_JAR="/path/to/fullLine.jar" \
 
 1. Build the plugin.
 2. In IntelliJ IDEA, open **Settings | Plugins**.
-3. Select **Install Plugin from Disk** and choose `dist/ai-chat-focus.jar`.
+3. Select **Install Plugin from Disk** and choose `dist/ai-chat-selection-sync.jar`.
 4. Restart the IDE when prompted.
 
 ## Configure a shortcut
