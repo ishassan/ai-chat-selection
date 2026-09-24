@@ -1,7 +1,7 @@
 <idea-plugin url="https://github.com/ishassan/ai-chat-selection-sync">
   <id>local.ai-chat-focus</id>
   <name>AI Chat Selection</name>
-  <version>1.0.12</version>
+  <version>1.0.13</version>
   <vendor url="https://github.com/ishassan">ishassan</vendor>
 
   <description><![CDATA[
@@ -16,6 +16,7 @@
 
   <change-notes><![CDATA[
     <ul>
+      <li>Fixed Option shortcut startup when IntelliJ initializes the plugin off the UI thread.</li>
       <li>Removed the deprecated keymap listener callbacks.</li>
       <li>Replaced the flagged API calls used to find AI Chat and read its input.</li>
     </ul>

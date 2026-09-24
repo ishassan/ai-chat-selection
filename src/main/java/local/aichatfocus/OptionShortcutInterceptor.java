@@ -16,6 +16,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.messages.MessageBusConnection;
 
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 import java.awt.Component;
 import java.awt.KeyboardFocusManager;
@@ -42,10 +43,11 @@ public final class OptionShortcutInterceptor implements Disposable {
   private volatile boolean interceptionEnabled;
   private boolean nativeLibraryLoaded;
   private boolean nativeHookInstalled;
+  private volatile boolean disposed;
 
   private final PropertyChangeListener focusOwnerListener = event -> {
     Object newValue = event.getNewValue();
-    focusTarget = resolveFocusTarget(newValue instanceof Component component ? component : null);
+    updateFocusTarget(newValue instanceof Component component ? component : null);
   };
 
   private final KeymapManagerListener keymapListener = new KeymapManagerListener() {
@@ -65,8 +67,8 @@ public final class OptionShortcutInterceptor implements Disposable {
     interceptionEnabled = SystemInfo.isMac && settings.isOptionShortcutInterceptionEnabled();
 
     KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-    focusTarget = resolveFocusTarget(manager.getFocusOwner());
     manager.addPropertyChangeListener("focusOwner", focusOwnerListener);
+    updateFocusTarget(manager.getFocusOwner());
 
     MessageBusConnection connection = ApplicationManager.getApplication().getMessageBus().connect(this);
     connection.subscribe(KeymapManagerListener.TOPIC, keymapListener);
@@ -74,6 +76,21 @@ public final class OptionShortcutInterceptor implements Disposable {
 
     if (interceptionEnabled) {
       installNativeHook();
+    }
+  }
+
+  private void updateFocusTarget(Component component) {
+    if (SwingUtilities.isEventDispatchThread()) {
+      if (!disposed) {
+        focusTarget = resolveFocusTarget(component);
+      }
+    } else {
+      SwingUtilities.invokeLater(() -> {
+        if (!disposed) {
+          Component current = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+          focusTarget = resolveFocusTarget(current);
+        }
+      });
     }
   }
 
@@ -254,6 +271,7 @@ public final class OptionShortcutInterceptor implements Disposable {
 
   @Override
   public void dispose() {
+    disposed = true;
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", focusOwnerListener);
     KeymapManagerEx.getInstanceEx().removeWeakListener(keymapListener);
     interceptionEnabled = false;
