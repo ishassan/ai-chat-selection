@@ -1,7 +1,7 @@
 <idea-plugin url="https://github.com/ishassan/ai-chat-selection">
   <id>ai-chat-selection</id>
   <name>ai-chat-selection</name>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <vendor url="https://github.com/ishassan">ishassan</vendor>
 
   <description><![CDATA[
@@ -15,10 +15,11 @@
   ]]></description>
 
   <change-notes><![CDATA[
-    <p>First release of ai-chat-selection.</p>
+    <p>1.0.1: Removes the upper IDE build limit. The plugin now installs on IntelliJ IDEA 2026.2.4 and later releases.</p>
+    <p>1.0.0: First release of ai-chat-selection.</p>
   ]]></change-notes>
 
-  <idea-version since-build="262.10968.1" until-build="262.10968.*" />
+  <idea-version since-build="262.10968.1" />
 
   <depends>com.intellij.modules.platform</depends>
   <depends>com.intellij.ml.llm</depends>

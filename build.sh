@@ -4,7 +4,12 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 IDEA_HOME="${IDEA_HOME:-/Applications/IntelliJ IDEA.app/Contents}"
 USER_HOME="${HOME:?HOME is not set}"
-ML_LLM_PLUGIN="${ML_LLM_PLUGIN:-$USER_HOME/Library/Application Support/JetBrains/IntelliJIdea2026.2/plugins/ml-llm}"
+# Default to the AI Assistant plugin of the newest IntelliJIdea<version> config folder.
+if [[ -z "${ML_LLM_PLUGIN:-}" ]]; then
+  JETBRAINS_CONFIG_DIR="$USER_HOME/Library/Application Support/JetBrains"
+  LATEST_IDEA_CONFIG="$(find "$JETBRAINS_CONFIG_DIR" -maxdepth 1 -type d -name 'IntelliJIdea*' -print 2>/dev/null | sort -V | tail -n 1)"
+  ML_LLM_PLUGIN="$LATEST_IDEA_CONFIG/plugins/ml-llm"
+fi
 JAVAC="${JAVAC:-$IDEA_HOME/jbr/Contents/Home/bin/javac}"
 JAVA="${JAVA:-$IDEA_HOME/jbr/Contents/Home/bin/java}"
 FULL_LINE_JAR="${FULL_LINE_JAR:-$IDEA_HOME/plugins/fullLine/lib/fullLine.jar}"

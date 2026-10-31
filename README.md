@@ -13,7 +13,7 @@ An IntelliJ IDEA plugin that keeps the current file-editor selection available i
 
 ## Requirements
 
-- IntelliJ IDEA 2026.2 (build `262.10968.*`).
+- IntelliJ IDEA 2026.2 (build `262.10968.1`) or later. The plugin does not set an upper IDE build limit.
 - The JetBrains AI Assistant plugin enabled in the IDE.
 
 This plugin uses JetBrains AI Assistant classes that are not part of a stable public plugin API. A JetBrains AI Assistant update may require changes to this plugin.
